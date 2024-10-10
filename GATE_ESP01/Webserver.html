@@ -1,0 +1,31 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <meta name=\ "viewport\" content=\ "width=device-width, initial-scale=1\">
+    <title>ESP-01 RELAY Control</title>
+    <style>
+        html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}
+        .button { background-color: #195B6A; border: none; color: white; padding: 16px 40px;
+        text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}
+        .button2 {background-color: #77878A;}
+    </style>
+</head>
+
+<body>
+    <div id="gate_lock">
+        <h1 align=c enter>GATE CONTROL</h1>
+        <h2 align=c enter>Press OPEN button to open Gate lock.</h2>
+        <br>
+        <button type="button" onclick="openGate()">OPEN</button>
+        <br>
+        <script>
+            function openGate() {
+              var xhttp = new XMLHttpRequest();
+              xhttp.open("GET", "http://192.168.1.254/RELAY=ON", true);
+              xhttp.send();
+            }
+        </script>
+</body>
+
+</html>
