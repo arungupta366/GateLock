@@ -1,14 +1,15 @@
 #include <ESP8266WiFi.h>
- 
-const char* ssid = "Arun_1F"; // fill in here your router or wifi SSID
+
+const int MAX_RUNNING_TIME = 3600000;
+const char* ssid = "Arun"; // fill in here your router or wifi SSID
 const char* password = "63666366"; // fill in here your router or wifi password
  #define RELAY 0 // relay connected to  GPIO0
 WiFiServer server(80);
  
 void setup() 
 {
-  Serial.begin(115200); // must be same baudrate with the Serial Monitor
- 
+  Serial.begin(115200,SERIAL_8N1,SERIAL_TX_ONLY); // must be same baudrate with the Serial Monitor
+  Serial.setDebugOutput(true);
   pinMode(RELAY,OUTPUT);
   digitalWrite(RELAY,HIGH);
   // Connect to WiFi network
@@ -29,6 +30,7 @@ void setup()
  
   // Start the server
   server.begin();
+  server.setNoDelay(true);
   Serial.println("Server started");
  
   // Print the IP address
@@ -38,48 +40,65 @@ void setup()
   Serial.println("/");
  
 }
+
+// prepare a web page to be send to a client (web browser)
+String prepareHtmlPage()
+{
+  String htmlPage;
+  htmlPage.reserve(1024);               // prevent ram fragmentation
+  htmlPage = F("HTTP/1.1 200 OK\r\n"
+               "Content-Type: text/json\r\n"
+               "Connection: close\r\n"  // the connection will be closed after completion of the response
+               "\r\n"
+               "{\"gateStatus\":\"open\"}"
+               "\r\n");
+               
+  return htmlPage;
+}
  
 void loop() 
 {
+  // Serial.println("loop");
+  if(millis()> MAX_RUNNING_TIME){
+    // Serial.println("ESP RESTARTED");
+    ESP.restart();
+  }
   // Check if a client has connected
-  WiFiClient client = server.available();
+  WiFiClient client = server.accept();
+  delay(500);
   if (!client) 
   {
+    // Serial.println("no client");
+    client.stop();
+    delay(100);
     return;
   }
  
   // Wait until the client sends some data
-  Serial.println("new client");
-  while(!client.available())
+  // Serial.println("new client");
+  delay(50);
+  if(!client.available())
   {
-    delay(1);
+    // Serial.println("new client not available");
+    return;
   }
 
   // Read the first line of the request
   String request = client.readStringUntil('\r');
-  Serial.println(request);
+  // Serial.println(request);
   client.flush();
-
-  client.println("HTTP/1.1 200 OK");
-  client.println("Content-Type: text/html");
-  client.println(""); //  this is a must
- 
+  client.println(prepareHtmlPage());
   // Match the request
-  int value = HIGH;
   if (request.indexOf("/RELAY=ON") != -1)  
   {
-    Serial.println("RELAY=ON");
+    // Serial.println("RELAY=ON");
     digitalWrite(RELAY,LOW);
-    value = LOW;
-  }
-  
-  if(value == LOW){
     delay(400);
     digitalWrite(RELAY,HIGH);
-    value = HIGH;
   }
-
-  delay(1);
-  Serial.println("Client disonnected");
-  Serial.println("");
+  delay(500);
+  // client.stop();
+  // Serial.println("Client Stop");
+  // Serial.println("Loop Completed");
+  // Serial.println("");
 }
