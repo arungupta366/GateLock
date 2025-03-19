@@ -3,11 +3,14 @@
 const int MAX_RUNNING_TIME = 3600000;
 const char* ssid = "Arun"; // fill in here your router or wifi SSID
 const char* password = "63666366"; // fill in here your router or wifi password
- #define RELAY 0 // relay connected to  GPIO0
+ #define RELAY 3 // relay connected to  GPIO0
 WiFiServer server(80);
  
 void setup() 
 {
+  pinMode(RELAY, INPUT_PULLUP);  // Disable internal pull-down, enable pull-up
+  delay(100);  // Short delay to stabilize GPIO state
+
   Serial.begin(115200,SERIAL_8N1,SERIAL_TX_ONLY); // must be same baudrate with the Serial Monitor
   Serial.setDebugOutput(true);
   pinMode(RELAY,OUTPUT);
